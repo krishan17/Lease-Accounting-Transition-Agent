@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DilipFin - ASC 842 & IFRS 16 Lease Transition Agent</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-calculator-combined brand-icon"></i>
+                <span class="brand-text">Dilip<span>Fin</span></span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" id="btn-nav-dashboard">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#schedules" class="nav-item" id="btn-nav-schedules">
+                    <i class="fa-solid fa-table-list"></i> Amortization Schedules
+                </a>
+                <a href="#entries" class="nav-item" id="btn-nav-entries">
+                    <i class="fa-solid fa-book"></i> Journal Entries
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="standard-badges">
+                    <span class="badge us-gaap">ASC 842</span>
+                    <span class="badge ifrs">IFRS 16</span>
+                </div>
+                <div class="version-text">v1.2.0 • Hulu Green Edition</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-title">
+                    <h1>Lease Accounting Transition Agent</h1>
+                    <p>US GAAP (ASC 842) to IFRS 16 Transition & Adjustments</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="btn-export-excel-top">
+                        <i class="fa-solid fa-file-excel"></i> Export Report
+                    </button>
+                </div>
+            </header>
+
+            <!-- Inner Views -->
+            <div class="content-body">
+                <!-- VIEW 1: DASHBOARD -->
+                <section id="view-dashboard" class="view-section active-view">
+                    <!-- Objective Card -->
+                    <div class="card objective-card">
+                        <div class="card-accent-bar"></div>
+                        <div class="objective-header">
+                            <i class="fa-solid fa-bullseye-arrow"></i>
+                            <h3>Objective</h3>
+                        </div>
+                        <p>Build an application that accepts US GAAP lease inputs (ASC 842 — Operating Lease), computes the equivalent IFRS 16 figures, and generates the journal entries required for IFRS adjustment reporting.</p>
+                    </div>
+
+                    <!-- Input Section -->
+                    <div class="grid-2-col">
+                        <!-- Left Panel: Input & File Load -->
+                        <div class="card input-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-sliders"></i> Lease Inputs</h3>
+                                <div class="header-buttons">
+                                    <button class="btn-tab active" id="tab-manual">Manual Entry</button>
+                                    <button class="btn-tab" id="tab-upload">Upload File</button>
+                                </div>
+                            </div>
+
+                            <!-- Manual Entry Form -->
+                            <div class="input-container" id="panel-manual">
+                                <form id="lease-form" class="lease-form">
+                                    <div class="form-group">
+                                        <label for="rent-input">Monthly Rent (PMT)</label>
+                                        <div class="input-wrapper">
+                                            <span class="input-prefix">$</span>
+                                            <input type="number" id="rent-input" value="10000" min="0" step="100" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="term-input">Lease Term (n)</label>
+                                        <div class="input-wrapper">
+                                            <input type="number" id="term-input" value="24" min="1" required>
+                                            <span class="input-suffix">months</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="rate-input">Annual Discount Rate</label>
+                                        <div class="input-wrapper">
+                                            <input type="number" id="rate-input" value="5" min="0" max="100" step="0.01" required>
+                                            <span class="input-suffix">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="classification">Lease Classification</label>
+                                        <input type="text" id="classification" value="Operating (US GAAP)" readonly class="readonly-input">
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-full" id="btn-calculate">
+                                        <i class="fa-solid fa-arrows-rotate"></i> Compute Schedules
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- File Upload Area -->
+                            <div class="input-container hidden" id="panel-upload">
+                                <div class="file-drag-area" id="drag-area">
+                                    <i class="fa-solid fa-cloud-arrow-up drag-icon"></i>
+                                    <p class="drag-title">Drag & Drop Lease Excel Sheet</p>
+                                    <p class="drag-subtitle">Supports .xlsx, .xls formats</p>
+                                    <span class="btn btn-secondary">Browse File</span>
+                                    <input type="file" id="file-input" accept=".xlsx, .xls" class="file-hidden">
+                                </div>
+                                <div class="upload-progress hidden" id="upload-progress">
+                                    <div class="spinner"></div>
+                                    <p>Parsing lease details...</p>
+                                </div>
+                                <div class="file-parsed-section hidden" id="file-parsed-section">
+                                    <div class="success-message">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Successfully loaded leases from sheet!</span>
+                                    </div>
+                                    <div class="portfolio-actions-box" style="margin-top: 12px;">
+                                        <label style="font-weight: 600; color: var(--neon-green); font-size: 13px; display: block; margin-bottom: 10px;">Bulk Portfolio Actions</label>
+                                        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                                            <button type="button" class="btn btn-success" id="btn-run-portfolio" style="flex: 1; font-size: 12px; padding: 10px;">
+                                                <i class="fa-solid fa-layer-group"></i> Run Combined Summary
+                                            </button>
+                                            <button type="button" class="btn btn-primary" id="btn-export-portfolio" style="flex: 1; font-size: 12px; padding: 10px;">
+                                                <i class="fa-solid fa-file-excel"></i> Export Bulk Report
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="form-group" style="border-top: 1px solid var(--card-border); padding-top: 12px;">
+                                            <label for="lease-selector" style="font-weight: 500; color: var(--text-muted); font-size: 12px;">Or, Select Specific Lease to Analyze</label>
+                                            <select id="lease-selector" class="custom-select">
+                                                <!-- Dynamically filled -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Formula & Computed PV -->
+                        <div class="card formula-card-outer">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-square-root-variable"></i> Present Value Calculation</h3>
+                            </div>
+                            <div class="formula-body">
+                                <div class="formula-box">
+                                    <div class="formula-math">
+                                        PV = PMT &times; <span class="fraction"><span class="numerator">[1 &minus; (1 + r)<sup>&minus;n</sup>]</span><span class="denominator">r</span></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="formula-variables">
+                                    <div class="variable-row">
+                                        <span class="var-name">PMT</span>
+                                        <span class="var-equal">=</span>
+                                        <span class="var-value" id="lbl-pmt">$10,000 per month</span>
+                                    </div>
+                                    <div class="variable-row">
+                                        <span class="var-name">r</span>
+                                        <span class="var-equal">=</span>
+                                        <span class="var-value" id="lbl-rate">5% &divide; 12 = 0.004167 per month</span>
+                                    </div>
+                                    <div class="variable-row">
+                                        <span class="var-name">n</span>
+                                        <span class="var-equal">=</span>
+                                        <span class="var-value" id="lbl-term">24 months</span>
+                                    </div>
+                                </div>
+
+                                <div class="computed-pv-badge">
+                                    <span class="badge-title">Computed PV</span>
+                                    <span class="badge-value" id="val-pv">$227,941.02</span>
+                                    <span class="badge-subtitle"><i class="fa-solid fa-circle-info"></i> Initial ROU Asset & Lease Liability (same for both standards)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Summary Row -->
+                    <div class="card comparison-summary-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-scale-balanced"></i> Transition Summary (Year-by-Year)</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" id="table-yearly-summary">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Period</th>
+                                        <th class="text-right">IFRS 16 Expense</th>
+                                        <th class="text-right">US GAAP Expense</th>
+                                        <th class="text-right">Expense Diff</th>
+                                        <th class="text-right">IFRS ROU Asset</th>
+                                        <th class="text-right">US GAAP ROU Asset</th>
+                                        <th class="text-right">ROU Asset Diff</th>
+                                        <th class="text-right">Lease Liability</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-yearly-summary">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 2: SCHEDULES -->
+                <section id="view-schedules" class="view-section">
+                    <div class="card schedules-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-table"></i> Amortization Tables</h3>
+                            <div class="header-buttons tab-buttons-schedules">
+                                <button class="btn-tab active" id="tab-sched-comparison">Side-by-Side Comparison</button>
+                                <button class="btn-tab" id="tab-sched-ifrs">IFRS 16 Schedule</button>
+                                <button class="btn-tab" id="tab-sched-us">US GAAP Schedule</button>
+                            </div>
+                        </div>
+
+                        <!-- 2.1 Side-by-Side Comparison Table -->
+                        <div class="schedule-table-container" id="panel-sched-comparison">
+                            <div class="table-responsive select-table-scroll">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Month</th>
+                                            <th class="text-right">IFRS Exp.</th>
+                                            <th class="text-right">US GAAP Exp.</th>
+                                            <th class="text-right">Exp. Diff</th>
+                                            <th class="text-right">IFRS ROU Asset</th>
+                                            <th class="text-right">US GAAP ROU Asset</th>
+                                            <th class="text-right">ROU Asset Diff</th>
+                                            <th class="text-right">IFRS Liab.</th>
+                                            <th class="text-right">US GAAP Liab.</th>
+                                            <th class="text-right">Liab. Diff</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-sched-comparison">
+                                        <!-- Filled dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 2.2 IFRS 16 Amortization Table -->
+                        <div class="schedule-table-container hidden" id="panel-sched-ifrs">
+                            <div class="table-responsive select-table-scroll">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Month</th>
+                                            <th class="text-right">Cash Payment</th>
+                                            <th class="text-right">Interest Expense</th>
+                                            <th class="text-right">Depreciation Expense</th>
+                                            <th class="text-right">Total P&L Expense</th>
+                                            <th class="text-right">Lease Liability (Closing)</th>
+                                            <th class="text-right">ROU Asset (Closing)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-sched-ifrs">
+                                        <!-- Filled dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 2.3 US GAAP ASC 842 Amortization Table -->
+                        <div class="schedule-table-container hidden" id="panel-sched-us">
+                            <div class="table-responsive select-table-scroll">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Month</th>
+                                            <th class="text-right">Cash Payment</th>
+                                            <th class="text-right">Lease Expense</th>
+                                            <th class="text-right">Interest Expense (A)</th>
+                                            <th class="text-right">Liability Reduction (B)</th>
+                                            <th class="text-right">ROU Asset Amortization (C)</th>
+                                            <th class="text-right">Liability Balance</th>
+                                            <th class="text-right">ROU Asset Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-sched-us">
+                                        <!-- Filled dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 3: JOURNAL ENTRIES -->
+                <section id="view-entries" class="view-section">
+                    <div class="grid-je" id="journal-entries-container">
+                        <!-- Filled dynamically -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Custom Script -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
